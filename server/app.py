@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from wareflow.environment import WareFlowEnv
 from wareflow.models import Action
+import uvicorn
 
 app = FastAPI()
 env = WareFlowEnv()
@@ -46,3 +47,7 @@ def step(action: dict):
         "done": done,
         "info": serialize(info),
     }
+
+
+def main():
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
