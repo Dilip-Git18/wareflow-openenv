@@ -1,0 +1,40 @@
+name: wareflow-order-fulfillment
+version: 1.0.0
+description: Deterministic real-world warehouse order fulfillment environment for OpenEnv hackathon.
+entrypoint: wareflow.environment:WareFlowEnv
+language: python
+seed: 42
+api:
+  reset: reset
+  step: step
+  state: state
+step_output:
+  - observation
+  - reward
+  - done
+  - info
+models:
+  observation: wareflow.models:Observation
+  action: wareflow.models:Action
+  reward: wareflow.models:Reward
+  state: wareflow.models:State
+tasks:
+  - id: easy
+    difficulty: easy
+    goal: Fulfill a small number of orders with no expected delays.
+    score_range: [0.0, 1.0]
+  - id: medium
+    difficulty: medium
+    goal: Fulfill more orders with limited inventory and moderate deadlines.
+    score_range: [0.0, 1.0]
+  - id: hard
+    difficulty: hard
+    goal: Fulfill many dynamic-priority orders with tight deadlines and shortages.
+    score_range: [0.0, 1.0]
+grading:
+  method: deterministic_trajectory_grader
+  metrics:
+    - accuracy_of_fulfillment
+    - delivery_time
+    - efficiency
+    - error_rate
