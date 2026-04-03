@@ -1,3 +1,13 @@
+---
+title: wareflow-openenv
+emoji: 📦
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
+
 # WareFlow: AI Warehouse Order Fulfillment Environment
 
 ## Overview
