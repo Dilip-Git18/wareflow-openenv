@@ -48,6 +48,7 @@ def _llm_action(client: OpenAI, model_name: str, obs: Observation) -> Optional[A
         "Return one JSON object only with keys: action_type, order_id, item_id, quantity, shipping_method, target_order_id. "
         "Allowed action_type: pick_item, pack_order, ship_order, delay_order, cancel_order, prioritize_order."
     )
+
     user = {
         "observation": obs.model_dump(),
         "requirements": [
@@ -72,17 +73,18 @@ def _llm_action(client: OpenAI, model_name: str, obs: Observation) -> Optional[A
     return Action.model_validate(parsed)
 
 
-def choose_action(client: OpenAI, model_name: str, obs: Observation) -> Action:
-    try:
-        action = _llm_action(client, model_name, obs)
-        if action is not None:
-            return action
-    except Exception:
-        pass
+def choose_action(client: Optional[OpenAI], model_name: str, obs: Observation) -> Action:
+    if client is not None:
+        try:
+            action = _llm_action(client, model_name, obs)
+            if action is not None:
+                return action
+        except Exception:
+            pass
     return _heuristic_action(obs)
 
 
-def run_task(client: OpenAI, model_name: str, task_name: str, seed: int = 42) -> Dict[str, float]:
+def run_task(client: Optional[OpenAI], model_name: str, task_name: str, seed: int = 42) -> Dict[str, float]:
     env = WareFlowEnv(task_name=task_name, seed=seed)
     obs = env.reset(task_name=task_name, seed=seed)
 
@@ -105,16 +107,13 @@ def run_task(client: OpenAI, model_name: str, task_name: str, seed: int = 42) ->
 
 
 def main() -> None:
-    api_base_url = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
-    model_name = os.getenv("MODEL_NAME")
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_base_url = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
+    model_name = os.getenv("MODEL_NAME", "openai/gpt-4.1-mini")
+    hf_token = os.getenv("HF_TOKEN")
 
-    if not model_name:
-        raise RuntimeError("MODEL_NAME is required.")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is required.")
-
-    client = OpenAI(base_url=api_base_url, api_key=api_key)
+    client: Optional[OpenAI] = None
+    if hf_token:
+        client = OpenAI(base_url=api_base_url, api_key=hf_token)
 
     results = {}
     for task in ["easy", "medium", "hard"]:
